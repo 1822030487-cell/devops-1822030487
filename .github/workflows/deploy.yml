@@ -1,0 +1,67 @@
+name: DevOps CI CD Website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Check required files
+        shell: bash
+        run: |
+          echo "Checking website files..."
+
+          for file in index.html style.css script.js; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Missing $file"
+              exit 1
+            fi
+          done
+
+          echo "All 3 files exist."
+
+      - name: Check HTML title
+        shell: bash
+        run: |
+          if ! grep -qi '<title[ >]' index.html; then
+            echo "ERROR: Missing HTML title!"
+            exit 1
+          fi
+
+          echo "HTML title exists."
+
+      - name: Upload website artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+  deploy:
+    name: deploy
+    needs: check
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
