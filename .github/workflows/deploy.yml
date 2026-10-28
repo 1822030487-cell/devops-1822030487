@@ -1,4 +1,4 @@
-ame: DevOps CI CD Website
+name: DevOps CI CD Website
 
 on:
   push:
